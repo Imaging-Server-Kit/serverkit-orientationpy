@@ -1,0 +1,10 @@
+package_name: "orientationpy"
+project_url: "https://gitlab.com/epfl-center-for-imaging/orientationpy"
+serverkit_repo_url: "https://github.com/Imaging-Server-Kit/serverkit-orientationpy"
+serverkit_author: "EPFL Center for Imaging"
+project_name: "Orientationpy"
+description: "An image analysis tool for the measurement of greyscale orientations from 2D or 3D images."
+used_for:
+  - "Filtering"
+tags:
+  - "EPFL"
