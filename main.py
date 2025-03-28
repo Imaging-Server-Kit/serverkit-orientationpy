@@ -59,6 +59,7 @@ class Parameters(BaseModel):
             "step": 1,
         },
     )
+
     @field_validator("image", mode="after")
     def decode_image_array(cls, v) -> np.ndarray:
         image_array = serverkit.decode_contents(v)
@@ -66,12 +67,12 @@ class Parameters(BaseModel):
             raise ValueError("Array has the wrong dimensionality.")
         return image_array
 
-# Define the run_algorithm() method for your algorithm
-class Server(serverkit.Server):
+
+class OrientationpyServer(serverkit.AlgorithmServer):
     def __init__(
         self,
-        algorithm_name: str="orientationpy",
-        parameters_model: Type[BaseModel]=Parameters
+        algorithm_name: str = "orientationpy",
+        parameters_model: Type[BaseModel] = Parameters,
     ):
         super().__init__(algorithm_name, parameters_model)
 
@@ -93,12 +94,9 @@ class Server(serverkit.Server):
         orientation_returns = orientationpy.computeOrientation(
             structureTensor,
             mode=mode,
-            computeEnergy=False,
-            computeCoherency=True,
         )
         theta = orientation_returns.get("theta") + 90
         phi = orientation_returns.get("phi")
-        coherency = rescale_intensity_quantile(orientation_returns.get("coherency"))
 
         boxVectorCoords = orientationpy.anglesToVectors(orientation_returns)
 
@@ -138,7 +136,7 @@ class Server(serverkit.Server):
                 )
             else:
                 imDisplayHSV = np.stack(
-                    (theta / 180, coherency, image / image.max()), axis=-1
+                    (theta / 180, np.ones_like(image), image / image.max()), axis=-1
                 )
             imdisplay_rgb = matplotlib.colors.hsv_to_rgb(imDisplayHSV)
 
@@ -161,8 +159,9 @@ class Server(serverkit.Server):
         images = [skimage.io.imread(image_path) for image_path in image_dir.glob("*")]
         return images
 
-server = Server()
+
+server = OrientationpyServer()
 app = server.app
 
-if __name__=='__main__':
+if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000)
